@@ -25,7 +25,7 @@ External Requirements:
 - Basic utils: `git`, `make`, `unzip`, C Compiler (`gcc`)
 - [ripgrep](https://github.com/BurntSushi/ripgrep#installation)
 - Clipboard tool (xclip/xsel/win32yank or other depending on platform)
-- A [Nerd Font](https://www.nerdfonts.com/): optional, provides various icons
+- A [Nerd Font](https://www.nerdfonts.com/): required for some of the icons in the included plugins (e.g. `nvim-tree.lua`)
   - if you have it set `vim.g.have_nerd_font` in `init.lua` to true
 - Language Setup:
   - If you want to write Typescript, you need `npm`
@@ -71,8 +71,13 @@ too - it's ignored in the kickstart repo to make maintenance easier, but it's
 <details><summary> Linux and Mac </summary>
 
 ```sh
-git clone https://github.com/nvim-lua/kickstart.nvim.git "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
+git clone https://github.com/dariopellegrino00/kickstart.nvim.git "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
 ```
+
+**Remeber custom instattation requires**  
+  - `go` intall with the official instructions 
+  - `gopls` install with the official instructions
+  - `ruff` create venv or install user-wide using `pip install ruff`
 
 </details>
 
@@ -81,13 +86,13 @@ git clone https://github.com/nvim-lua/kickstart.nvim.git "${XDG_CONFIG_HOME:-$HO
 If you're using `cmd.exe`:
 
 ```
-git clone https://github.com/nvim-lua/kickstart.nvim.git "%localappdata%\nvim"
+git clone https://github.com/dariopellegrino00/kickstart.nvim.git "%localappdata%\nvim"
 ```
 
 If you're using `powershell.exe`
 
 ```
-git clone https://github.com/nvim-lua/kickstart.nvim.git "${env:LOCALAPPDATA}\nvim"
+git clone https://github.com/dariopellegrino00/kickstart.nvim.git "${env:LOCALAPPDATA}\nvim"
 ```
 
 </details>

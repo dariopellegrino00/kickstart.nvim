@@ -91,7 +91,11 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
+
+-- nvim-tree disable netrw
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -102,13 +106,14 @@ vim.g.have_nerd_font = false
 -- vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
+vim.opt.number = true
 vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
-vim.opt.mouse = 'a'
+vim.opt.mouse = nil -- Nil is enabled
 
 -- Don't show the mode, since it's already in the status line
-vim.opt.showmode = false
+vim.opt.showmode = true
 
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
@@ -164,9 +169,38 @@ vim.opt.scrolloff = 10
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+-- NOTE: custom personal keymaps
+
 -- Diagnostic keymaps
+
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+vim.keymap.set('x', '<leader>p', [["_dP]], { desc = 'Paste over selected text without yanking' })
+
+vim.keymap.set({ 'n', 'v' }, '<leader>d', [["_d]], { desc = 'Delete selected text without yanking' })
+
+vim.keymap.set('n', '<leader>D', [["_D]], { desc = 'Delete till end of line without yanking' })
+
+-- Paste at the end of the line
+vim.keymap.set('n', '<leader>pe', 'A <Esc>p', { desc = 'Paste at the end of the line' })
+
+-- keymap to accept single completion item in copilot
+vim.keymap.set('i', '<C-J>', '<Plug>(copilot-accept-word)', { noremap = false, silent = true })
+-- Disables tab mapping in copilot
+vim.g.copilot_no_tab_map = true
+vim.g.copilot_assume_mapped = true
+-- use Ctrl + E instead of tab
+--
+vim.api.nvim_set_keymap('i', '<C-e>', 'copilot#Accept("<CR>")', {
+  silent = true,
+  expr = true,
+  noremap = true,
+})
+
+vim.keymap.set('n', '<leader>b', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = 'Search and replace in current file' })
+
+-- next greatest remap ever
+vim.keymap.set({ 'n', 'v' }, '<leader>i', [["+i]])
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.
@@ -175,6 +209,8 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
+-- Keymap per visualizzare gli hint degli LSP
+vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show lsp warning/errors etc...' })
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
@@ -190,6 +226,10 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Current Window resize
+vim.keymap.set('n', '<Leader>+', '<Cmd>vertical resize +5<CR>')
+vim.keymap.set('n', '<Leader>-', '<Cmd>vertical resize -5<CR>')
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -203,7 +243,16 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
-
+-- Custom tab indentations for erlang files
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'erlang', 'go', 'elixir' },
+  callback = function()
+    vim.bo.expandtab = true
+    vim.bo.shiftwidth = 4
+    vim.bo.tabstop = 4
+    vim.bo.softtabstop = 4
+  end,
+})
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -226,18 +275,178 @@ vim.opt.rtp:prepend(lazypath)
 --  To update plugins you can run
 --    :Lazy update
 --
+--
+--
+--
+
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
 
+  -- NOTE: personal plugins
+  --
+  -- tree-sitter is a parser generator tool and an incremental parsing library.
+  {
+    'nvim-treesitter/nvim-treesitter',
+    build = ':TSUpdate',
+  },
+  {
+    'NeogitOrg/neogit',
+    dependencies = {
+      'nvim-lua/plenary.nvim', -- required
+      'sindrets/diffview.nvim', -- optional - Diff integration
+
+      -- Only one of these is needed.
+      'nvim-telescope/telescope.nvim', -- optional
+      'ibhagwan/fzf-lua', -- optional
+      'echasnovski/mini.pick', -- optional
+    },
+    config = true,
+  },
+  {
+    'lewis6991/gitsigns.nvim',
+    event = { 'BufReadPre', 'BufNewFile' },
+    config = function()
+      require('gitsigns').setup {
+        current_line_blame = true,
+        current_line_blame_opts = {
+          delay = 100,
+          ignore_whitespace = false,
+        },
+      }
+    end,
+    keys = {
+      { '<leader>gb', '<cmd>Gitsigns toggle_current_line_blame<cr>', desc = 'Toggle Git Blame' },
+      { '<leader>gi', '<cmd>Gitsigns preview_hunk_inline<cr>', desc = 'Preview Git Hunk Inline' },
+      { '<leader>gp', '<cmd>Gitsigns preview_hunk<cr>', desc = 'Preview Git Hunk' },
+
+      { '<leader>gn', '<cmd>Gitsigns next_hunk<cr>', desc = 'Next Git Hunk' },
+      { '<leader>gN', '<cmd>Gitsigns prev_hunk<cr>', desc = 'Previous Git Hunk' },
+      { '<leader>gr', '<cmd>Gitsigns reset_hunk<cr>', desc = 'Reset Git Hunk' },
+      { '<leader>gs', '<cmd>Gitsigns stage_hunk<cr>', desc = 'Stage Git Hunk' },
+    },
+  },
+  {
+    'Wansmer/treesj',
+    keys = { '<space>m', '<space>j', '<space>s' },
+    dependencies = { 'nvim-treesitter/nvim-treesitter' }, -- if you install parsers with `nvim-treesitter`
+    config = function()
+      require('treesj').setup {--[[ your config ]]
+        max_join_length = 200,
+      }
+    end,
+  },
+  {
+    'github/copilot.vim',
+    lazy = false,
+  },
+  {
+    'nvim-tree/nvim-tree.lua',
+    version = '*',
+    lazy = false,
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('nvim-tree').setup {
+        view = {
+          width = 40,
+          side = 'left',
+        },
+      }
+    end,
+  },
+  {
+    'kylechui/nvim-surround',
+    version = '*', -- Use for stability; omit to use `main` branch for the latest features
+    event = 'VeryLazy',
+    config = function()
+      require('nvim-surround').setup {
+        -- Configuration here, or leave empty to use defaults
+      }
+    end,
+  },
+  {
+    'nosduco/remote-sshfs.nvim',
+    dependencies = { 'nvim-telescope/telescope.nvim' }, -- necessary dependencies for the plugin
+    config = function()
+      require('remote-sshfs').setup {
+        mounts = {
+          base_dir = vim.fn.expand '$HOME' .. '/.sshfs/', -- Where the remote filesystems will be mounted
+          unmount_on_exit = true, -- Unmount automatically on nvim exit
+        },
+        handlers = {
+          on_connect = { change_dir = true }, -- change directory automatically on connect
+        },
+      }
+      require('telescope').load_extension 'remote-sshfs' -- load the telescope extension
+    end,
+  },
+
+  -- Search and replace plugin
+  {
+    'nvim-pack/nvim-spectre',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    config = function()
+      require('spectre').setup()
+    end,
+  },
+
+  -- Begin python linting/formatting plugins
+
+  -- Probably pep8-indent not working
+  {
+    'Vimjas/vim-python-pep8-indent',
+    ft = 'python',
+    config = function()
+      vim.g.python_pep8_indent_hang_closing = 1
+    end,
+  },
+
+  -- ruff python linter
+  {
+    'mfussenegger/nvim-lint',
+    config = function()
+      require('lint').linters_by_ft = {
+        python = { 'ruff' },
+      }
+
+      -- Lint on save
+      vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
+        callback = function()
+          require('lint').try_lint()
+        end,
+      })
+    end,
+  },
+  {
+    'folke/noice.nvim',
+    event = 'VeryLazy',
+    opts = {},
+    dependencies = {
+      'MunifTanjim/nui.nvim',
+      'rcarriga/nvim-notify',
+    },
+  },
+
+  ---- ruff python formatter
+  --{
+  --'stevearc/conform.nvim',
+  --opts = {
+  --formatters_by_ft = {
+  --python = { 'ruff_format' },
+  --},
+  --format_on_save = {
+  --timeout_ms = 5000, -- aumenta a 5 secondi
+  --},
+  --},
+  --},
+  -- End python linting/formatting plugins
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
   --
   -- Use `opts = {}` to force a plugin to be loaded.
   --
-
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
   --    require('gitsigns').setup({ ... })
@@ -394,8 +603,8 @@ require('lazy').setup({
           },
         },
       }
-
       -- Enable Telescope extensions if they are installed
+      --
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
 
@@ -525,7 +734,7 @@ require('lazy').setup({
           -- Jump to the type of the word under your cursor.
           --  Useful when you're not sure what type a variable is and you want to see
           --  the definition of its *type*, not where it was *defined*.
-          map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+          map('<leader>td', require('telescope.builtin').lsp_type_definitions, '[t]Type [d]efinition')
 
           -- Fuzzy find all the symbols in your current document.
           --  Symbols are things like variables, functions, types, etc.
@@ -607,6 +816,7 @@ require('lazy').setup({
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
+      --
       --  Add any additional override configuration in the following tables. Available keys are:
       --  - cmd (table): Override the default command used to start the server
       --  - filetypes (table): Override the default list of associated filetypes for the server
@@ -617,6 +827,9 @@ require('lazy').setup({
         -- clangd = {},
         -- gopls = {},
         pyright = {},
+        elp = {},
+        gopls = {},
+        golangci_lint_ls = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -838,13 +1051,13 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
+    'catppuccin/nvim',
+    name = 'catppuccin',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'catppuccin-mocha'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
