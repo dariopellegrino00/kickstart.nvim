@@ -217,7 +217,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 -- Custom tab indentations for erlang files
 vim.api.nvim_create_autocmd('FileType', {
-  pattern = 'erlang',
+  pattern = { 'erlang', 'go', 'elixir' },
   callback = function()
     vim.bo.expandtab = true
     vim.bo.shiftwidth = 4
@@ -654,6 +654,8 @@ require('lazy').setup({
         -- gopls = {},
         pyright = {},
         elp = {},
+        gopls = {},
+        golangci_lint_ls = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
