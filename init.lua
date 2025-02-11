@@ -258,6 +258,18 @@ require('lazy').setup({
     lazy = false,
   },
   {
+    'iamcco/markdown-preview.nvim',
+    build = 'cd app && npm install', -- Install dependencies
+    ft = { 'markdown' }, -- Load only for Markdown files
+    cmd = { 'MarkdownPreview', 'MarkdownPreviewStop', 'MarkdownPreviewToggle' }, -- Available commands
+    config = function()
+      vim.g.mkdp_auto_start = 0 -- Do not start automatically
+      vim.g.mkdp_refresh_slow = 1 -- Slow refresh rate for better performance
+      vim.g.mkdp_browser = '' -- Use the default system browser
+    end,
+  },
+
+  {
     'Vimjas/vim-python-pep8-indent',
     ft = 'python',
     config = function()
