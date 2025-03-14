@@ -91,7 +91,11 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
+
+-- nvim-tree disable netrw
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -168,12 +172,14 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
 -- custom key maps
-vim.keymap.set('x', '<leader>p', [["_dP]])
+vim.keymap.set('x', '<leader>p', [["_dP]], { desc = 'Paste over selected text without yanking' })
 
-vim.keymap.set({ 'n', 'v' }, '<leader>d', [["_d]])
+vim.keymap.set({ 'n', 'v' }, '<leader>d', [["_d]], { desc = 'Delete selected text without yanking' })
+
+vim.keymap.set('n', '<leader>D', [["_D]], { desc = 'Delete till end of line without yanking' })
 
 -- Paste at the end of the line
-vim.keymap.set('n', '<leader>pe', 'A <Esc>p')
+vim.keymap.set('n', '<leader>pe', 'A <Esc>p', { desc = 'Paste at the end of the line' })
 
 -- next greatest remap ever
 vim.keymap.set({ 'n', 'v' }, '<leader>i', [["+i]])
@@ -254,21 +260,54 @@ require('lazy').setup({
 
   -- NOTE: personal plugins
   {
+    'Wansmer/treesj',
+    keys = { '<space>m', '<space>j', '<space>s' },
+    dependencies = { 'nvim-treesitter/nvim-treesitter' }, -- if you install parsers with `nvim-treesitter`
+    config = function()
+      require('treesj').setup {--[[ your config ]]
+        max_join_length = 200,
+      }
+    end,
+  },
+  {
     'github/copilot.vim',
     lazy = false,
   },
   {
-    'iamcco/markdown-preview.nvim',
-    build = 'cd app && npm install', -- Install dependencies
-    ft = { 'markdown' }, -- Load only for Markdown files
-    cmd = { 'MarkdownPreview', 'MarkdownPreviewStop', 'MarkdownPreviewToggle' }, -- Available commands
+    'nvim-tree/nvim-tree.lua',
+    version = '*',
+    lazy = false,
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
-      vim.g.mkdp_auto_start = 0 -- Do not start automatically
-      vim.g.mkdp_refresh_slow = 1 -- Slow refresh rate for better performance
-      vim.g.mkdp_browser = '' -- Use the default system browser
+      require('nvim-tree').setup()
     end,
   },
-
+  {
+    'kylechui/nvim-surround',
+    version = '*', -- Use for stability; omit to use `main` branch for the latest features
+    event = 'VeryLazy',
+    config = function()
+      require('nvim-surround').setup {
+        -- Configuration here, or leave empty to use defaults
+      }
+    end,
+  },
+  {
+    'nosduco/remote-sshfs.nvim',
+    dependencies = { 'nvim-telescope/telescope.nvim' }, -- necessary dependencies for the plugin
+    config = function()
+      require('remote-sshfs').setup {
+        mounts = {
+          base_dir = vim.fn.expand '$HOME' .. '/.sshfs/', -- Where the remote filesystems will be mounted
+          unmount_on_exit = true, -- Unmount automatically on nvim exit
+        },
+        handlers = {
+          on_connect = { change_dir = true }, -- change directory automatically on connect
+        },
+      }
+      require('telescope').load_extension 'remote-sshfs' -- load the telescope extension
+    end,
+  },
   {
     'Vimjas/vim-python-pep8-indent',
     ft = 'python',
@@ -572,7 +611,7 @@ require('lazy').setup({
           -- Jump to the type of the word under your cursor.
           --  Useful when you're not sure what type a variable is and you want to see
           --  the definition of its *type*, not where it was *defined*.
-          map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+          map('<leader>td', require('telescope.builtin').lsp_type_definitions, '[t]Type [d]efinition')
 
           -- Fuzzy find all the symbols in your current document.
           --  Symbols are things like variables, functions, types, etc.
@@ -889,13 +928,13 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
+    'catppuccin/nvim',
+    name = 'catppuccin',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'catppuccin-mocha'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
