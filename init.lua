@@ -106,6 +106,7 @@ vim.g.loaded_netrwPlugin = 1
 -- vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
+vim.opt.number = true
 vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
@@ -168,8 +169,8 @@ vim.opt.scrolloff = 10
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
--- NOTE: custom keymaps
---
+-- NOTE: custom personal keymaps
+
 -- Diagnostic keymaps
 
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
@@ -182,6 +183,9 @@ vim.keymap.set('n', '<leader>D', [["_D]], { desc = 'Delete till end of line with
 
 -- Paste at the end of the line
 vim.keymap.set('n', '<leader>pe', 'A <Esc>p', { desc = 'Paste at the end of the line' })
+
+-- keymap to accept single completion item in copilot
+vim.keymap.set('i', '<C-J>', '<Plug>(copilot-accept-word)', { noremap = false, silent = true })
 
 -- next greatest remap ever
 vim.keymap.set({ 'n', 'v' }, '<leader>i', [["+i]])
@@ -209,6 +213,10 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+-- Current Window resize
+vim.keymap.set('n', '<Leader>+', '<Cmd>vertical resize +5<CR>')
+vim.keymap.set('n', '<Leader>-', '<Cmd>vertical resize -5<CR>')
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -261,40 +269,8 @@ require('lazy').setup({
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
 
   -- NOTE: personal plugins
-  -- Precondition gives hints on available vim movements
-  --:Precognition toggle to enable/disable hinst
-  {
-    'tris203/precognition.nvim',
-    --event = "VeryLazy",
-    opts = {
-      -- startVisible = true,
-      -- showBlankVirtLine = true,
-      -- highlightColor = { link = "Comment" },
-      -- hints = {
-      --      Caret = { text = "^", prio = 2 },
-      --      Dollar = { text = "$", prio = 1 },
-      --      MatchingPair = { text = "%", prio = 5 },
-      --      Zero = { text = "0", prio = 1 },
-      --      w = { text = "w", prio = 10 },
-      --      b = { text = "b", prio = 9 },
-      --      e = { text = "e", prio = 8 },
-      --      W = { text = "W", prio = 7 },
-      --      B = { text = "B", prio = 6 },
-      --      E = { text = "E", prio = 5 },
-      -- },
-      -- gutterHints = {
-      --     G = { text = "G", prio = 10 },
-      --     gg = { text = "gg", prio = 9 },
-      --     PrevParagraph = { text = "{", prio = 8 },
-      --     NextParagraph = { text = "}", prio = 8 },
-      -- },
-      -- disabled_fts = {
-      --     "startify",
-      -- },
-    },
-  },
-  -- NOTE: tree-sitter is a parser generator tool and an incremental parsing library.
   --
+  -- tree-sitter is a parser generator tool and an incremental parsing library.
   {
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
@@ -332,7 +308,12 @@ require('lazy').setup({
     lazy = false,
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
-      require('nvim-tree').setup()
+      require('nvim-tree').setup {
+        view = {
+          width = 22,
+          side = 'left',
+        },
+      }
     end,
   },
   {
