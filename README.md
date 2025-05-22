@@ -74,6 +74,11 @@ too - it's ignored in the kickstart repo to make maintenance easier, but it's
 git clone https://github.com/dariopellegrino00/kickstart.nvim.git "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
 ```
 
+**Remeber custom instattation requires**  
+  - `go` intall with the official instructions 
+  - `gopls` install with the official instructions
+  - `ruff` create venv or install user-wide using `pip install ruff`
+
 </details>
 
 <details><summary> Windows </summary>

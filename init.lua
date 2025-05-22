@@ -342,14 +342,46 @@ require('lazy').setup({
       require('telescope').load_extension 'remote-sshfs' -- load the telescope extension
     end,
   },
+
+  -- Begin python linting/formatting plugins
+
+  -- Probably pep8-indent not working
   {
     'Vimjas/vim-python-pep8-indent',
     ft = 'python',
     config = function()
-      -- Configura altre opzioni per Python
-      vim.g.python_pep8_indent_hang_closing = 1 -- Esempio: segue la regola PEP 8 per la chiusura di parentesi
+      vim.g.python_pep8_indent_hang_closing = 1
     end,
   },
+
+  -- ruff python linter
+  {
+    'mfussenegger/nvim-lint',
+    config = function()
+      require('lint').linters_by_ft = {
+        python = { 'ruff' },
+      }
+
+      -- Lint on save
+      vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
+        callback = function()
+          require('lint').try_lint()
+        end,
+      })
+    end,
+  },
+
+  -- ruff python formatter
+  {
+    'stevearc/conform.nvim',
+    opts = {
+      formatters_by_ft = {
+        python = { 'ruff_format' },
+      },
+    },
+  },
+
+  -- End python linting/formatting plugins
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
